@@ -8,7 +8,7 @@ from .config import (
     WINDOW_SIZE, FIREFLY_RANGE, FIREFLY_COUNT, STAR_COUNT,
     MOON_RADIUS, MOON_POSITION, MOON_COLOR,
     SUN_RADIUS, SUN_POSITION, SUN_COLOR,
-    TREE_POSITION_RIGHT
+    TREE_POSITION_RIGHT, CLOUD_COUNT, CLOUD_X_RANGE, CLOUD_Y_RANGE, CLOUD_SIZE_RANGE
 )
 
 # Transition constants
@@ -50,7 +50,7 @@ class Scene:
         self.sun = Sun(SUN_RADIUS, SUN_POSITION, SUN_COLOR, draw=True)
         
         # Start sun at zenith (highest point) for bright day
-        self.sun.angle = math.pi / 2
+        self.sun.angle = math.pi *0
         self.sun.revolve()  # Update position based on angle
     
     def _init_stars_and_fireflies(self):
@@ -76,9 +76,9 @@ class Scene:
         self.clouds = [
             Cloud(x, y, size)
             for x, y, size in zip(
-                choices(range(-100, self.wsize[0]), k=5),
-                choices(range(50, 200), k=5),
-                [uniform(0.8, 1.5) for _ in range(5)]
+                choices(range(*CLOUD_X_RANGE), k=CLOUD_COUNT),
+                choices(range(*CLOUD_Y_RANGE), k=CLOUD_COUNT),
+                [uniform(*CLOUD_SIZE_RANGE) for _ in range(CLOUD_COUNT)]
             )
         ]
         
