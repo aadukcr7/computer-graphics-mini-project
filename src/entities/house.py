@@ -10,6 +10,7 @@ class House:
         self.x, self.y = HOUSE_POSITION
         self.window_color = HOUSE_DAY_COLOR  # Start with day color
         self.brightness = 1.0  # Start with full brightness for day
+        self.is_night = False
 
     def draw_layout(self):
         """House Structure"""
@@ -124,6 +125,9 @@ class House:
         """Draw shadow cast by the house based on sun position"""
         import math
         
+        if self.is_night:
+            return
+        
         # Shadow only visible during day when sun is visible
         if sun_angle < 0 or sun_angle > math.pi:
             return
@@ -179,8 +183,10 @@ class House:
         self.window_color = HOUSE_NIGHT_COLOR if time == "night" else HOUSE_DAY_COLOR
         # Adjust brightness based on time
         if time == "night":
+            self.is_night = True
             self.brightness = 0.3  # Darker at night
         else:
+            self.is_night = False
             self.brightness = 1.0  # Full brightness during day
 
     def draw(self, sun=None):

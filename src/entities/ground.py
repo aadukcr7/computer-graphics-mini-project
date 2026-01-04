@@ -1,14 +1,14 @@
 """Ground/grass base"""
 from OpenGL.GL import *
-from ..config import WINDOW_SIZE
+from ..config import WINDOW_SIZE, GRASS_DAY_COLOR, GRASS_NIGHT_COLOR
 
 
 class Ground:
     """Green ground at the bottom of the screen"""
     def __init__(self):
         self.width, self.height = WINDOW_SIZE
-        self.day_color = (0.2, 0.6, 0.2)      # Bright green for day
-        self.night_color = (0.01, 0.03, 0.02)  # Very dark green for night
+        self.day_color = GRASS_DAY_COLOR      # Bright green for day
+        self.night_color = GRASS_NIGHT_COLOR  # Very dark green for night
         self.current_color = self.day_color  # Start with day color
         self.ground_height = 300  # Height of ground from bottom
 
@@ -31,7 +31,7 @@ class Ground:
         
         if time == "day":
             # During day, ground gets brighter as sun rises
-            sun_height = math.sin(sun.angle)
+            sun_height = max(0.0, math.sin(sun.angle))
             
             # Interpolate between night and day colors
             r = self.night_color[0] + (self.day_color[0] - self.night_color[0]) * sun_height
@@ -40,10 +40,11 @@ class Ground:
             
             self.current_color = (r, g, b)
         else:
-            # During night transition, gradually darken ground
-            r = self.day_color[0] + (self.night_color[0] - self.day_color[0]) * transition_progress
-            g = self.day_color[1] + (self.night_color[1] - self.day_color[1]) * transition_progress
-            b = self.day_color[2] + (self.night_color[2] - self.day_color[2]) * transition_progress
+            # During night, stay dark unless mid-transition
+            t = transition_progress if transition_progress > 0 else 1.0
+            r = self.day_color[0] + (self.night_color[0] - self.day_color[0]) * t
+            g = self.day_color[1] + (self.night_color[1] - self.day_color[1]) * t
+            b = self.day_color[2] + (self.night_color[2] - self.day_color[2]) * t
             
             self.current_color = (r, g, b)
 

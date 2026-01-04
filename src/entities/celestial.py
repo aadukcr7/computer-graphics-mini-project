@@ -7,12 +7,15 @@ from random import randint, uniform
 from OpenGL.GL import *
 from ..config import (
     WINDOW_SIZE, SUN_RADIUS, SUN_POSITION, SUN_COLOR,
-    MOON_RADIUS, MOON_POSITION, MOON_COLOR
+    MOON_RADIUS, MOON_POSITION, MOON_COLOR, TIME_SCALE
 )
 
 # Celestial movement constants
-SUN_STEP = 0.0008
-MOON_STEP = 0.0005
+# Base steps define the arc speed; TIME_SCALE slows or speeds the full cycle.
+BASE_SUN_STEP = 0.0008
+BASE_MOON_STEP = 0.0008  # match day/night duration ratio to 12h/12h
+SUN_STEP = BASE_SUN_STEP * TIME_SCALE
+MOON_STEP = BASE_MOON_STEP * TIME_SCALE
 ORBIT_CENTER_X = WINDOW_SIZE[0] // 2
 ORBIT_CENTER_Y = WINDOW_SIZE[1] // 2
 ORBIT_RADIUS_X = 700

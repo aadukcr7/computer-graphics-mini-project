@@ -2,7 +2,10 @@
 Scene Manager
 Orchestrates all entities and manages the day-night cycle
 """
+import math
 from random import choices, uniform
+from OpenGL.GL import *
+from OpenGL.GLUT import *
 from .entities import Background, Sun, Moon, Star, Cloud, Ground, Firefly, House, Tree
 from .config import (
     WINDOW_SIZE, FIREFLY_RANGE, FIREFLY_COUNT, STAR_COUNT,
@@ -15,15 +18,30 @@ from .config import (
 TRANSITION_SPEED = 0.005
 INITIAL_TIME = "day"
 
+# Day/Night schedule (simulation hours)
+# Sunrise at 06:00, sunset at 18:00 for a 12h/12h split
+DAY_START = 6   # sunrise
+DAY_END = 18    # sunset
+DAY_SPAN = DAY_END - DAY_START  # 12 hours
+NIGHT_START = DAY_END
+NIGHT_SPAN = 24 - DAY_SPAN      # 12 hours
+
 
 class Scene:
     """Main scene containing all visual elements and their interactions"""
     
-    def __init__(self):
-        """Initialize all scene entities"""
+    def __init__(self, hour=12):
+        """Initialize all scene entities
+        
+        Args:
+            hour: Hour of day (0-23), default is noon
+        """
         self.wsize = WINDOW_SIZE
         self.time = INITIAL_TIME
         self.seconds = 86400
+        self.current_hour = hour  # 0-23 format
+        self.current_minute = 0
+        self.is_paused = False  # Animation is active by default
         
         # Transition state variables
         self.transition_progress = 0.0
@@ -36,7 +54,7 @@ class Scene:
         self._init_landscape()
         
         # Set initial state for all entities based on starting time
-        self._set_initial_state()
+        self._set_time_of_day(hour)
     
     def _init_background(self):
         """Initialize background"""
@@ -87,61 +105,67 @@ class Scene:
         self.tree_right = Tree(TREE_POSITION_RIGHT)
         self.house = House()
     
-    def _set_initial_state(self):
-        """Set correct initial state for all entities based on starting time"""
+    def _set_time_of_day(self, hour):
+        """Set the scene to a specific hour (0-23)
+        
+        Args:
+            hour: Hour of day (0-23)
+                  0 = midnight, 6 = sunrise, 12 = noon, 18 = sunset, 23 = late night
+        """
         import math
         
-        # Set initial brightness for sun/moon based on their starting angle
-        if self.time == "day":
-            # Initialize sun brightness
-            brightness = math.sin(self.sun.angle) ** 1.5
-            r, g, b = SUN_COLOR
-            self.sun.color = (r, g, b, brightness)
+        self.current_hour = hour % 24
+        self.current_minute = 0
+        
+        # Determine if it's day or night using configured spans
+        if DAY_START <= self.current_hour < DAY_END:
+            self.time = "day"
             self.sun._draw = True
-            
-            # Hide moon during day
             self.moon._draw = False
             
-            # Set day state for all entities
-            self.background.switch_time("day")
-            self.ground.switch_time("day")
-            self.house.switch_time("day")
-            self.tree.switch_time("day")
-            self.tree_right.switch_time("day")
+            # Calculate sun angle: 0 at sunrise, pi at sunset
+            hour_progress = (self.current_hour - DAY_START) / float(DAY_SPAN)
+            self.sun.angle = hour_progress * math.pi
+            self.sun.revolve()
             
-            for cloud in self.clouds:
-                cloud.switch_time("day")
-            
-            for star in self.stars:
-                star.switch_time("day")
-            
-            for firefly in self.fireflies:
-                firefly.switch_time("day")
+            # Update brightness based on sun angle
+            brightness = max(0, math.sin(self.sun.angle)) ** 1.5
+            r, g, b = SUN_COLOR
+            self.sun.color = (r, g, b, brightness)
         else:
-            # Initialize moon brightness
-            brightness = math.sin(self.moon.angle) ** 1.5
-            r, g, b = MOON_COLOR
-            self.moon.color = (r, g, b, brightness)
+            self.time = "night"
             self.moon._draw = True
-            
-            # Hide sun during night
             self.sun._draw = False
             
-            # Set night state for all entities
-            self.background.switch_time("night")
-            self.ground.switch_time("night")
-            self.house.switch_time("night")
-            self.tree.switch_time("night")
-            self.tree_right.switch_time("night")
+            # Calculate moon angle for night hours over a single NIGHT_SPAN arc
+            night_progress = ((self.current_hour - NIGHT_START) % 24) / float(NIGHT_SPAN)
+            # Map full night to a single π arc: NIGHT_START -> rise, NIGHT_START+NIGHT_SPAN -> set
+            self.moon.angle = night_progress * math.pi
+            self.moon.revolve()
             
-            for cloud in self.clouds:
-                cloud.switch_time("night")
-            
-            for star in self.stars:
-                star.switch_time("night")
-            
-            for firefly in self.fireflies:
-                firefly.switch_time("night")
+            # Update brightness based on moon angle
+            brightness = max(0, math.sin(self.moon.angle)) ** 1.5
+            r, g, b = MOON_COLOR
+            self.moon.color = (r, g, b, brightness)
+        
+        # Update all entities to match time of day
+        self.background.switch_time(self.time)
+        self.ground.switch_time(self.time)
+        self.house.switch_time(self.time)
+        self.tree.switch_time(self.time)
+        self.tree_right.switch_time(self.time)
+        
+        for cloud in self.clouds:
+            cloud.switch_time(self.time)
+        
+        for star in self.stars:
+            star.switch_time(self.time)
+        
+        for firefly in self.fireflies:
+            firefly.switch_time(self.time)
+        
+        # Update brightness of environment
+        self._update_brightness()
     
     def draw(self):
         """Render all scene elements in proper order"""
@@ -170,14 +194,29 @@ class Scene:
         self.moon.draw()
         self.sun.draw()
         
-        # Update state
-        self.time_elapse()
+        # Update state (only if not paused)
+        if not self.is_paused:
+            self.time_elapse()
+    
+
+
+    
+    def _draw_time_display(self):
+        """Display time information via console output instead of on-screen rendering"""
+        # Time display is shown in console when user changes time
+        # This avoids OpenGL font rendering issues
+        pass
+
+
+
     
     def time_elapse(self):
         """Handle time progression and transitions"""
         self._update_transition()
         self._update_celestial_bodies()
         self._update_brightness()
+        self._sync_sim_time_from_angles()
+        # Clock sync removed; simulation still updates celestial bodies
     
     def _update_transition(self):
         """Update transition state when switching between day and night"""
@@ -210,6 +249,21 @@ class Scene:
         )
         self.sun.change_brightness(self.sun, self.time, self.seconds)
         self.moon.change_brightness(self.sun, self.time, self.seconds)
+
+    def _sync_sim_time_from_angles(self):
+        """Map celestial angles to simulated clock time for accurate hour/minute tracking"""
+        import math
+        if self.time == "day":
+            progress = max(0.0, min(1.0, self.sun.angle / math.pi))
+            sim_hours = DAY_START + progress * DAY_SPAN
+        else:
+            progress = max(0.0, min(1.0, self.moon.angle / math.pi))
+            sim_hours = NIGHT_START + progress * NIGHT_SPAN
+            if sim_hours >= 24:
+                sim_hours -= 24
+
+        self.current_hour = int(sim_hours) % 24
+        self.current_minute = int((sim_hours - int(sim_hours)) * 60)
     
     def switch_time(self):
         """Switch between day and night and update all entities"""
@@ -237,3 +291,16 @@ class Scene:
         self.house.switch_time(self.time)
         self.tree.switch_time(self.time)
         self.tree_right.switch_time(self.time)
+    
+    def set_hour(self, hour):
+        """Set the scene to a specific hour (0-23)
+        
+        Args:
+            hour: Hour of day (0-23)
+        """
+        if not 0 <= hour <= 23:
+            print(f"Invalid hour: {hour}. Please use 0-23.")
+            return False
+        
+        self._set_time_of_day(hour)
+        return True

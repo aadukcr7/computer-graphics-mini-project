@@ -55,7 +55,8 @@ FIREFLY_COUNT = 25
 # ============================================================================
 GRASS_LENGTH = 250
 GRASS_DAY_COLOR = (0.2, 0.6, 0.2)
-GRASS_NIGHT_COLOR = (0.01, 0.03, 0.02)
+# Darker night grass; aligned to tree foliage at lower brightness (~0.2x)
+GRASS_NIGHT_COLOR = (0.0267, 0.0926, 0.0267)
 
 # ============================================================================
 # LANDSCAPE OBJECTS - HOUSE
@@ -76,3 +77,11 @@ TREE_FOLIAGE_COLOR = (34/255, 139/255, 34/255)
 # ANIMATION
 # ============================================================================
 ANIMATION_SPEED = 1.0
+
+# ============================================================================
+# TIME SCALING
+# ============================================================================
+# Controls how fast simulated time advances relative to real-time frames.
+# 1.0 keeps previous speed, values <1 slow the cycle, >1 speed it up.
+# Example: 0.2 makes the whole day-night cycle ~5x slower.
+TIME_SCALE = 0.2

@@ -15,6 +15,7 @@ class Tree:
         self.trunk_color = TREE_TRUNK_COLOR
         self.foliage_color = TREE_FOLIAGE_COLOR
         self.brightness = 1.0  # Start with full brightness for day
+        self.is_night = False
 
     def draw_trunk(self):
         """Draw slightly tapered trunk"""
@@ -55,6 +56,10 @@ class Tree:
     def draw_shadow(self, sun_x, sun_y, sun_angle):
         """Draw shadow cast by tree based on sun position"""
         import math
+        
+        # Skip shadows entirely at night
+        if self.is_night:
+            return
         
         # Shadow only visible during day when sun is visible
         if sun_angle < 0 or sun_angle > math.pi:
@@ -108,8 +113,10 @@ class Tree:
     def switch_time(self, time):
         """Adjust tree brightness based on time of day"""
         if time == "night":
+            self.is_night = True
             self.brightness = 0.3  # Darker at night
         else:
+            self.is_night = False
             self.brightness = 1.0  # Full brightness during day
 
     def draw(self, sun=None):
