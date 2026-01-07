@@ -65,3 +65,6 @@ computer-graphics-mini-project/
 ## Notes
 - Tested with PyOpenGL on Windows; other platforms may require installing freeglut separately.
 - If on-screen text fails to render, console output still shows controls and time jumps.
+
+addd the concept of the seasons
+days are shorter in winter and night are longer where as days are longer in summer and nights become comparatively shorter. 
