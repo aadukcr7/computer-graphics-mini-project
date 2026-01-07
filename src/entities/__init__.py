@@ -5,5 +5,6 @@ from .ground import Ground
 from .nature import Grass, Firefly
 from .house import House
 from .tree import Tree
+from .snow import Snowfall
 
-__all__ = ['Background', 'Sun', 'Moon', 'Star', 'Cloud', 'Ground', 'Grass', 'Firefly', 'House', 'Tree']
+__all__ = ['Background', 'Sun', 'Moon', 'Star', 'Cloud', 'Ground', 'Grass', 'Firefly', 'House', 'Tree', 'Snowfall']

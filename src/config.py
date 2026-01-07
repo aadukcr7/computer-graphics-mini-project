@@ -11,6 +11,18 @@ WINDOW_POSITION = (0, 0)     # Position at top-left corner
 WINDOW_TITLE = b"Day - Night Transition Simulation"
 
 # ============================================================================
+# SEASON SETTINGS
+# ============================================================================
+# Choose between 'summer' and 'winter'. Default set to winter per request.
+SEASON = "winter"
+
+# Day schedule per season
+SUMMER_DAY_START = 6
+SUMMER_DAY_END = 18
+WINTER_DAY_START = 6
+WINTER_DAY_END = 20
+
+# ============================================================================
 # BACKGROUND & SKY COLORS
 # ============================================================================
 GRADIENT_STEPS = 100
@@ -85,3 +97,12 @@ ANIMATION_SPEED = 1.0
 # 1.0 keeps previous speed, values <1 slow the cycle, >1 speed it up.
 # Example: 0.2 makes the whole day-night cycle ~5x slower.
 TIME_SCALE = 0.2
+
+# ============================================================================
+# SNOW (WINTER ONLY)
+# ============================================================================
+SNOWFLAKE_COUNT = 200
+SNOWFLAKE_SIZE_RANGE = (1, 3)
+SNOWFLAKE_SPEED_RANGE = (0.8, 2.0)  # pixels per frame
+SNOW_COLOR = (1.0, 1.0, 1.0, 0.9)
+SNOW_COVER_HEIGHT = 120  # thickness of ground snow cap

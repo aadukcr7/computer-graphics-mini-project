@@ -6,25 +6,18 @@ import math
 from random import choices, uniform
 from OpenGL.GL import *
 from OpenGL.GLUT import *
-from .entities import Background, Sun, Moon, Star, Cloud, Ground, Firefly, House, Tree
+from .entities import Background, Sun, Moon, Star, Cloud, Ground, Firefly, House, Tree, Snowfall
 from .config import (
     WINDOW_SIZE, FIREFLY_RANGE, FIREFLY_COUNT, STAR_COUNT,
     MOON_RADIUS, MOON_POSITION, MOON_COLOR,
     SUN_RADIUS, SUN_POSITION, SUN_COLOR,
-    TREE_POSITION_RIGHT, CLOUD_COUNT, CLOUD_X_RANGE, CLOUD_Y_RANGE, CLOUD_SIZE_RANGE
+    TREE_POSITION_RIGHT, CLOUD_COUNT, CLOUD_X_RANGE, CLOUD_Y_RANGE, CLOUD_SIZE_RANGE,
+    SEASON, SUMMER_DAY_START, SUMMER_DAY_END, WINTER_DAY_START, WINTER_DAY_END
 )
 
 # Transition constants
 TRANSITION_SPEED = 0.005
 INITIAL_TIME = "day"
-
-# Day/Night schedule (simulation hours)
-# Sunrise at 06:00, sunset at 18:00 for a 12h/12h split
-DAY_START = 6   # sunrise
-DAY_END = 18    # sunset
-DAY_SPAN = DAY_END - DAY_START  # 12 hours
-NIGHT_START = DAY_END
-NIGHT_SPAN = 24 - DAY_SPAN      # 12 hours
 
 
 class Scene:
@@ -42,6 +35,18 @@ class Scene:
         self.current_hour = hour  # 0-23 format
         self.current_minute = 0
         self.is_paused = False  # Animation is active by default
+        self.season = SEASON
+
+        # Season-based day/night schedule
+        if self.season == "winter":
+            self.day_start = WINTER_DAY_START
+            self.day_end = WINTER_DAY_END
+        else:
+            self.day_start = SUMMER_DAY_START
+            self.day_end = SUMMER_DAY_END
+        self.day_span = self.day_end - self.day_start
+        self.night_start = self.day_end
+        self.night_span = 24 - self.day_span
         
         # Transition state variables
         self.transition_progress = 0.0
@@ -52,6 +57,7 @@ class Scene:
         self._init_celestial_bodies()
         self._init_stars_and_fireflies()
         self._init_landscape()
+        self._init_seasonal_effects()
         
         # Set initial state for all entities based on starting time
         self._set_time_of_day(hour)
@@ -91,19 +97,51 @@ class Scene:
     
     def _init_landscape(self):
         """Initialize clouds, ground, trees, and house"""
-        self.clouds = [
-            Cloud(x, y, size)
-            for x, y, size in zip(
-                choices(range(*CLOUD_X_RANGE), k=CLOUD_COUNT),
-                choices(range(*CLOUD_Y_RANGE), k=CLOUD_COUNT),
-                [uniform(*CLOUD_SIZE_RANGE) for _ in range(CLOUD_COUNT)]
-            )
-        ]
+        # Create clouds only in non-winter seasons
+        if self.season != "winter":
+            self.clouds = [
+                Cloud(x, y, size)
+                for x, y, size in zip(
+                    choices(range(*CLOUD_X_RANGE), k=CLOUD_COUNT),
+                    choices(range(*CLOUD_Y_RANGE), k=CLOUD_COUNT),
+                    [uniform(*CLOUD_SIZE_RANGE) for _ in range(CLOUD_COUNT)]
+                )
+            ]
+        else:
+            self.clouds = []
         
         self.ground = Ground()
         self.tree = Tree()
         self.tree_right = Tree(TREE_POSITION_RIGHT)
         self.house = House()
+
+    def _init_seasonal_effects(self):
+        """Initialize seasonal elements like snowfall for winter"""
+        self.snowfall = None
+        if self.season == "winter":
+            self.snowfall = Snowfall()
+            # Enable snow cover on ground
+            self.ground.enable_snow(True)
+            # Clear clouds in winter
+            self.clouds = []
+            # Disable shadows during winter season
+            self.tree.set_shadows(False)
+            self.tree_right.set_shadows(False)
+            self.house.set_shadows(False)
+        else:
+            self.ground.enable_snow(False)
+            # Regenerate clouds in non-winter
+            self.clouds = [
+                Cloud(x, y, size)
+                for x, y, size in zip(
+                    choices(range(*CLOUD_X_RANGE), k=CLOUD_COUNT),
+                    choices(range(*CLOUD_Y_RANGE), k=CLOUD_COUNT),
+                    [uniform(*CLOUD_SIZE_RANGE) for _ in range(CLOUD_COUNT)]
+                )
+            ]
+            self.tree.set_shadows(True)
+            self.tree_right.set_shadows(True)
+            self.house.set_shadows(True)
     
     def _set_time_of_day(self, hour):
         """Set the scene to a specific hour (0-23)
@@ -118,13 +156,13 @@ class Scene:
         self.current_minute = 0
         
         # Determine if it's day or night using configured spans
-        if DAY_START <= self.current_hour < DAY_END:
+        if self.day_start <= self.current_hour < self.day_end:
             self.time = "day"
             self.sun._draw = True
             self.moon._draw = False
             
             # Calculate sun angle: 0 at sunrise, pi at sunset
-            hour_progress = (self.current_hour - DAY_START) / float(DAY_SPAN)
+            hour_progress = (self.current_hour - self.day_start) / float(self.day_span)
             self.sun.angle = hour_progress * math.pi
             self.sun.revolve()
             
@@ -138,7 +176,7 @@ class Scene:
             self.sun._draw = False
             
             # Calculate moon angle for night hours over a single NIGHT_SPAN arc
-            night_progress = ((self.current_hour - NIGHT_START) % 24) / float(NIGHT_SPAN)
+            night_progress = ((self.current_hour - self.night_start) % 24) / float(self.night_span)
             # Map full night to a single π arc: NIGHT_START -> rise, NIGHT_START+NIGHT_SPAN -> set
             self.moon.angle = night_progress * math.pi
             self.moon.revolve()
@@ -180,6 +218,10 @@ class Scene:
         # Atmospheric elements
         for cloud in self.clouds:
             cloud.draw()
+
+        # Winter snowfall overlay (drawn over sky/clouds, under objects)
+        if self.snowfall is not None:
+            self.snowfall.draw()
         
         # Landscape objects with shadows
         self.tree.draw(self.sun)
@@ -255,10 +297,10 @@ class Scene:
         import math
         if self.time == "day":
             progress = max(0.0, min(1.0, self.sun.angle / math.pi))
-            sim_hours = DAY_START + progress * DAY_SPAN
+            sim_hours = self.day_start + progress * self.day_span
         else:
             progress = max(0.0, min(1.0, self.moon.angle / math.pi))
-            sim_hours = NIGHT_START + progress * NIGHT_SPAN
+            sim_hours = self.night_start + progress * self.night_span
             if sim_hours >= 24:
                 sim_hours -= 24
 
@@ -291,6 +333,46 @@ class Scene:
         self.house.switch_time(self.time)
         self.tree.switch_time(self.time)
         self.tree_right.switch_time(self.time)
+
+    def toggle_season(self):
+        """Toggle between summer and winter seasons and reconfigure scene"""
+        self.season = "summer" if self.season == "winter" else "winter"
+
+        # Update day/night schedule based on new season
+        if self.season == "winter":
+            self.day_start = WINTER_DAY_START
+            self.day_end = WINTER_DAY_END
+        else:
+            self.day_start = SUMMER_DAY_START
+            self.day_end = SUMMER_DAY_END
+        self.day_span = self.day_end - self.day_start
+        self.night_start = self.day_end
+        self.night_span = 24 - self.day_span
+
+        # Initialize/disable seasonal effects
+        if self.season == "winter":
+            self.snowfall = Snowfall()
+            self.ground.enable_snow(True)
+            # Clear clouds in winter
+            self.clouds = []
+            self.tree.set_shadows(False)
+            self.tree_right.set_shadows(False)
+            self.house.set_shadows(False)
+        else:
+            self.snowfall = None
+            self.ground.enable_snow(False)
+            # Regenerate clouds in non-winter
+            self.clouds = [
+                Cloud(x, y, size)
+                for x, y, size in zip(
+                    choices(range(*CLOUD_X_RANGE), k=CLOUD_COUNT),
+                    choices(range(*CLOUD_Y_RANGE), k=CLOUD_COUNT),
+                    [uniform(*CLOUD_SIZE_RANGE) for _ in range(CLOUD_COUNT)]
+                )
+            ]
+
+        # Re-apply current hour to update time-of-day with new schedule
+        self._set_time_of_day(self.current_hour)
     
     def set_hour(self, hour):
         """Set the scene to a specific hour (0-23)

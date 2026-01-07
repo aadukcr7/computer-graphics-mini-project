@@ -46,8 +46,13 @@ class Application:
             print("="*50)
             print("Q - Quit simulation")
             print("H - Show this help")
+            print("S - Toggle season (summer/winter)")
             print("00-23 - Jump to hour (type 2 digits: 00=midnight, 06=sunrise, 12=noon, 18=sunset, 23=late night)")
             print("="*50 + "\n")
+        elif key == b's' or key == b'S':
+            # Toggle season in the scene
+            self.scene.toggle_season()
+            print(f"\r✓ Season toggled. Now: {self.scene.season.capitalize()}")
         elif key == b'\r' or key == b'\n':  # Enter key - process buffer
             if self.time_input_buffer:
                 self._process_time_input()
@@ -122,6 +127,7 @@ class Application:
         print("\nThe simulation is RUNNING - watch the day-night cycle!")
         print("\nPress a key while the window is active:")
         print("  H - Help menu")
+        print("  S - Toggle season (summer/winter)")
         print("  00-23 - Type 2 digits to jump to hour")
         print("  Q - Quit")
         print("="*50 + "\n")

@@ -1,6 +1,9 @@
 """Ground/grass base"""
 from OpenGL.GL import *
-from ..config import WINDOW_SIZE, GRASS_DAY_COLOR, GRASS_NIGHT_COLOR
+from ..config import (
+    WINDOW_SIZE, GRASS_DAY_COLOR, GRASS_NIGHT_COLOR,
+    SNOW_COVER_HEIGHT, SNOW_COLOR
+)
 
 
 class Ground:
@@ -11,6 +14,7 @@ class Ground:
         self.night_color = GRASS_NIGHT_COLOR  # Very dark green for night
         self.current_color = self.day_color  # Start with day color
         self.ground_height = 300  # Height of ground from bottom
+        self.snow_enabled = False
 
     def draw(self):
         """Draw solid ground rectangle"""
@@ -24,6 +28,29 @@ class Ground:
         glVertex2f(0, self.height - self.ground_height)
         
         glEnd()
+
+        # Optional snow cap overlay for winter
+        if self.snow_enabled:
+            self._draw_snow_cover()
+
+    def _draw_snow_cover(self):
+        """Draw a white snow overlay covering the entire ground in winter."""
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+        top_y = self.height - self.ground_height
+        cover_h = self.ground_height
+
+        glBegin(GL_POLYGON)
+        glColor4f(*SNOW_COLOR)
+        # Full ground coverage
+        glVertex2f(0, top_y)
+        glVertex2f(self.width, top_y)
+        glVertex2f(self.width, top_y + cover_h)
+        glVertex2f(0, top_y + cover_h)
+        glEnd()
+
+        glDisable(GL_BLEND)
 
     def change_brightness(self, sun, time, seconds, transition_progress=0):
         """Change ground color based on time of day"""
@@ -54,3 +81,7 @@ class Ground:
             self.current_color = self.day_color
         else:
             self.current_color = self.night_color
+
+    def enable_snow(self, enabled=True):
+        """Enable/disable snow cover overlay (winter season)."""
+        self.snow_enabled = bool(enabled)

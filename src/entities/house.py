@@ -11,6 +11,7 @@ class House:
         self.window_color = HOUSE_DAY_COLOR  # Start with day color
         self.brightness = 1.0  # Start with full brightness for day
         self.is_night = False
+        self.shadows_enabled = True
 
     def draw_layout(self):
         """House Structure"""
@@ -125,6 +126,10 @@ class House:
         """Draw shadow cast by the house based on sun position"""
         import math
         
+        # Disable shadows globally when not enabled (e.g., winter season)
+        if not self.shadows_enabled:
+            return
+        
         if self.is_night:
             return
         
@@ -188,6 +193,9 @@ class House:
         else:
             self.is_night = False
             self.brightness = 1.0  # Full brightness during day
+
+    def set_shadows(self, enabled: bool):
+        self.shadows_enabled = bool(enabled)
 
     def draw(self, sun=None):
         self.draw_layout()
