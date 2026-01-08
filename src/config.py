@@ -19,8 +19,8 @@ SEASON = "winter"
 # Day schedule per season
 SUMMER_DAY_START = 6
 SUMMER_DAY_END = 18
-WINTER_DAY_START = 6
-WINTER_DAY_END = 20
+WINTER_DAY_START = 8
+WINTER_DAY_END = 16
 
 # ============================================================================
 # BACKGROUND & SKY COLORS

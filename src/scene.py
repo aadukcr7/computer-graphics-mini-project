@@ -355,6 +355,7 @@ class Scene:
             self.ground.enable_snow(True)
             # Clear clouds in winter
             self.clouds = []
+            # Disable shadows during winter
             self.tree.set_shadows(False)
             self.tree_right.set_shadows(False)
             self.house.set_shadows(False)
@@ -370,6 +371,10 @@ class Scene:
                     [uniform(*CLOUD_SIZE_RANGE) for _ in range(CLOUD_COUNT)]
                 )
             ]
+            # Enable shadows during summer
+            self.tree.set_shadows(True)
+            self.tree_right.set_shadows(True)
+            self.house.set_shadows(True)
 
         # Re-apply current hour to update time-of-day with new schedule
         self._set_time_of_day(self.current_hour)

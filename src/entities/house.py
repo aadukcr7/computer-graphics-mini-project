@@ -146,7 +146,7 @@ class House:
         sun_height = math.sin(sun_angle)
         
         # Don't draw shadow if sun is too low
-        if sun_height < 0.1:
+        if sun_height < 0.05:
             return
         
         # Calculate horizontal distance and direction from house to sun
