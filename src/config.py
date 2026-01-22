@@ -106,3 +106,6 @@ SNOWFLAKE_SIZE_RANGE = (1, 3)
 SNOWFLAKE_SPEED_RANGE = (0.8, 2.0)  # pixels per frame
 SNOW_COLOR = (1.0, 1.0, 1.0, 0.9)
 SNOW_COVER_HEIGHT = 120  # thickness of ground snow cap
+NIGHT_SNOW_INTENSITY_MULTIPLIER = 0.5  # Reduce snow intensity to 50% during night
+SNOW_COVER_OPACITY_DAY = 0.9  # Opacity of snow cover during day
+SNOW_COVER_OPACITY_NIGHT = 0.7  # Opacity of snow cover during night (dimmer)

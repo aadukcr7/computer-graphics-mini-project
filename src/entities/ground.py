@@ -2,7 +2,7 @@
 from OpenGL.GL import *
 from ..config import (
     WINDOW_SIZE, GRASS_DAY_COLOR, GRASS_NIGHT_COLOR,
-    SNOW_COVER_HEIGHT, SNOW_COLOR
+    SNOW_COVER_HEIGHT, SNOW_COLOR, SNOW_COVER_OPACITY_DAY, SNOW_COVER_OPACITY_NIGHT
 )
 
 
@@ -15,6 +15,7 @@ class Ground:
         self.current_color = self.day_color  # Start with day color
         self.ground_height = 300  # Height of ground from bottom
         self.snow_enabled = False
+        self.snow_cover_opacity = SNOW_COVER_OPACITY_DAY  # Start with day opacity
 
     def draw(self):
         """Draw solid ground rectangle"""
@@ -42,7 +43,8 @@ class Ground:
         cover_h = self.ground_height
 
         glBegin(GL_POLYGON)
-        glColor4f(*SNOW_COLOR)
+        # Use current snow cover opacity
+        glColor4f(SNOW_COLOR[0], SNOW_COLOR[1], SNOW_COLOR[2], self.snow_cover_opacity)
         # Full ground coverage
         glVertex2f(0, top_y)
         glVertex2f(self.width, top_y)
@@ -76,11 +78,13 @@ class Ground:
             self.current_color = (r, g, b)
 
     def switch_time(self, time):
-        """Switch between day and night colors"""
+        """Switch between day and night colors and snow opacity"""
         if time == "day":
             self.current_color = self.day_color
+            self.snow_cover_opacity = SNOW_COVER_OPACITY_DAY
         else:
             self.current_color = self.night_color
+            self.snow_cover_opacity = SNOW_COVER_OPACITY_NIGHT
 
     def enable_snow(self, enabled=True):
         """Enable/disable snow cover overlay (winter season)."""

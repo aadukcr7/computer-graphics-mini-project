@@ -53,12 +53,37 @@ class Snowflake:
 
 class Snowfall:
     """Manager for multiple snowflakes"""
-    def __init__(self):
-        self.flakes = [Snowflake() for _ in range(SNOWFLAKE_COUNT)]
+    def __init__(self, intensity_multiplier=1.0):
+        self.intensity_multiplier = intensity_multiplier
+        self.update_flake_count()
         # Randomize starting positions across the screen
         for f in self.flakes:
             f.x = randint(0, WINDOW_SIZE[0])
             f.y = randint(-WINDOW_SIZE[1] // 2, WINDOW_SIZE[1] // 2)
+
+    def update_flake_count(self):
+        """Update the number of flakes based on intensity multiplier"""
+        target_count = int(SNOWFLAKE_COUNT * self.intensity_multiplier)
+        current_count = len(self.flakes) if hasattr(self, 'flakes') else 0
+        
+        if target_count > current_count:
+            # Add more flakes
+            new_flakes = [Snowflake() for _ in range(target_count - current_count)]
+            for f in new_flakes:
+                f.x = randint(0, WINDOW_SIZE[0])
+                f.y = randint(-WINDOW_SIZE[1] // 2, WINDOW_SIZE[1] // 2)
+            if hasattr(self, 'flakes'):
+                self.flakes.extend(new_flakes)
+            else:
+                self.flakes = new_flakes
+        elif target_count < current_count:
+            # Remove flakes
+            self.flakes = self.flakes[:target_count]
+
+    def set_intensity(self, multiplier):
+        """Set snow intensity (0.0 to 1.0+)"""
+        self.intensity_multiplier = max(0.0, multiplier)
+        self.update_flake_count()
 
     def draw(self):
         for f in self.flakes:

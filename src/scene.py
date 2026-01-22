@@ -12,7 +12,8 @@ from .config import (
     MOON_RADIUS, MOON_POSITION, MOON_COLOR,
     SUN_RADIUS, SUN_POSITION, SUN_COLOR,
     TREE_POSITION_RIGHT, CLOUD_COUNT, CLOUD_X_RANGE, CLOUD_Y_RANGE, CLOUD_SIZE_RANGE,
-    SEASON, SUMMER_DAY_START, SUMMER_DAY_END, WINTER_DAY_START, WINTER_DAY_END
+    SEASON, SUMMER_DAY_START, SUMMER_DAY_END, WINTER_DAY_START, WINTER_DAY_END,
+    NIGHT_SNOW_INTENSITY_MULTIPLIER
 )
 
 # Transition constants
@@ -170,6 +171,10 @@ class Scene:
             brightness = max(0, math.sin(self.sun.angle)) ** 1.5
             r, g, b = SUN_COLOR
             self.sun.color = (r, g, b, brightness)
+            
+            # Set full snow intensity during day
+            if self.snowfall is not None:
+                self.snowfall.set_intensity(1.0)
         else:
             self.time = "night"
             self.moon._draw = True
@@ -185,6 +190,10 @@ class Scene:
             brightness = max(0, math.sin(self.moon.angle)) ** 1.5
             r, g, b = MOON_COLOR
             self.moon.color = (r, g, b, brightness)
+            
+            # Reduce snow intensity during night
+            if self.snowfall is not None:
+                self.snowfall.set_intensity(NIGHT_SNOW_INTENSITY_MULTIPLIER)
         
         # Update all entities to match time of day
         self.background.switch_time(self.time)
@@ -310,6 +319,13 @@ class Scene:
     def switch_time(self):
         """Switch between day and night and update all entities"""
         self.time = "day" if self.time == "night" else "night"
+        
+        # Update snow intensity based on time of day
+        if self.snowfall is not None:
+            if self.time == "night":
+                self.snowfall.set_intensity(NIGHT_SNOW_INTENSITY_MULTIPLIER)
+            else:
+                self.snowfall.set_intensity(1.0)
         
         # Update environment
         self.background.switch_time(self.time)
