@@ -11,6 +11,7 @@ This project simulates a complete 24-hour day-night cycle with mathematical prec
 - **Smooth color transitions** between day and night
 - **Interactive time control** allowing instant jumps to any hour
 - **Complete landscape** with trees, house, clouds, stars, fireflies, and seasonal snow
+- **Computer graphics** shadows movement of sun and moon stars snow fall
 
 ## Requirements
 
