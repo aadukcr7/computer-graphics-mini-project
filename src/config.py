@@ -16,11 +16,11 @@ WINDOW_TITLE = b"Day - Night Transition Simulation"
 # Choose between 'summer' and 'winter'. Default set to winter per request.
 SEASON = "winter"
 
-# Day schedule per season
+# Day schedule per season - both have same duration for consistent sun/moon movement
 SUMMER_DAY_START = 6
 SUMMER_DAY_END = 18
-WINTER_DAY_START = 8
-WINTER_DAY_END = 16
+WINTER_DAY_START = 7
+WINTER_DAY_END = 18
 
 # ============================================================================
 # BACKGROUND & SKY COLORS
