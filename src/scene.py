@@ -244,6 +244,9 @@ class Scene:
         # Celestial bodies (drawn last, on top of everything)
         self.moon.draw()
         self.sun.draw()
+
+        # HUD overlay (drawn on top of scene)
+        self._draw_time_display()
         
         # Update state (only if not paused)
         if not self.is_paused:
@@ -253,10 +256,51 @@ class Scene:
 
     
     def _draw_time_display(self):
-        """Display time information via console output instead of on-screen rendering"""
-        # Time display is shown in console when user changes time
-        # This avoids OpenGL font rendering issues
-        pass
+        """Draw current time as a simple HUD overlay"""
+        time_text = f"Time: {self.current_hour:02d}"
+        self._draw_text(20, 60, time_text)
+
+    def _draw_text(self, x, y, text, font=GLUT_BITMAP_HELVETICA_18):
+        """Render bitmap text in screen space"""
+        w, h = self.wsize
+
+        glMatrixMode(GL_PROJECTION)
+        glPushMatrix()
+        glLoadIdentity()
+        glOrtho(0.0, w, h, 0.0, -1.0, 1.0)
+
+        glMatrixMode(GL_MODELVIEW)
+        glPushMatrix()
+        glLoadIdentity()
+
+        text_width = sum(glutBitmapWidth(font, ord(ch)) for ch in text)
+        text_height = 18
+
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glBegin(GL_QUADS)
+        glColor4f(0.0, 0.0, 0.0, 0.45)
+        glVertex2f(x - 6, y - text_height)
+        glVertex2f(x + text_width + 6, y - text_height)
+        glVertex2f(x + text_width + 6, y + 6)
+        glVertex2f(x - 6, y + 6)
+        glEnd()
+        glDisable(GL_BLEND)
+
+        glColor3f(0.0, 0.0, 0.0)
+        glRasterPos2f(x + 1, y + 1)
+        for ch in text:
+            glutBitmapCharacter(font, ord(ch))
+
+        glColor3f(1.0, 1.0, 1.0)
+        glRasterPos2f(x, y)
+        for ch in text:
+            glutBitmapCharacter(font, ord(ch))
+
+        glPopMatrix()
+        glMatrixMode(GL_PROJECTION)
+        glPopMatrix()
+        glMatrixMode(GL_MODELVIEW)
 
 
 
