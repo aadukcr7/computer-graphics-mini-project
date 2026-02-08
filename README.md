@@ -40,7 +40,7 @@ You will be prompted to enter a starting hour (00-23). The window will open afte
 
 | **S** | Toggle season (Summer ↔ Winter) |
 | **00-23** | Jump to specific hour (type 2 digits, auto-processes) |
-| **Q** | Quit simulation |
+
 
 ## Mathematical Formulas
 

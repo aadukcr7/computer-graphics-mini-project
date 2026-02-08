@@ -44,8 +44,7 @@ class Application:
             print("\n" + "="*50)
             print("KEYBOARD CONTROLS")
             print("="*50)
-            print("Q - Quit simulation")
-            print("H - Show this help")
+          
             print("S - Toggle season (summer/winter)")
             print("00-23 - Jump to hour (type 2 digits: 00=midnight, 06=sunrise, 12=noon, 18=sunset, 23=late night)")
             print("="*50 + "\n")
@@ -126,10 +125,10 @@ class Application:
         print(f"Starting at: {hour_12:02d}:00 {am_pm} (24h: {self.initial_hour:02d}:00)")
         print("\nThe simulation is RUNNING - watch the day-night cycle!")
         print("\nPress a key while the window is active:")
-        print("  H - Help menu")
+       
         print("  S - Toggle season (summer/winter)")
         print("  00-23 - Type 2 digits to jump to hour")
-        print("  Q - Quit")
+        
         print("="*50 + "\n")
         
         # Start main loop
